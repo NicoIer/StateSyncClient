@@ -1,4 +1,16 @@
 {
-  "name": "Game",
-  "references":[ "GUID:788496d469157f54ab58c806d049af4f" ]
+    "name": "Game",
+    "rootNamespace": "",
+    "references": [
+        "UnityToolkit"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }
