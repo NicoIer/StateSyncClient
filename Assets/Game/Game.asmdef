@@ -1,3 +1,4 @@
 {
-  "name": "Game"
+  "name": "Game",
+  "references":[ "GUID:788496d469157f54ab58c806d049af4f" ]
 }
