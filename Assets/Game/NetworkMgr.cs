@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using GameCore;
 using Network;
 using Network.Client;
 using Sirenix.OdinInspector;
@@ -30,6 +31,19 @@ namespace Game
         private void OnDestroy()
         {
             Dispose();
+        }
+
+        [Button]
+        private void ReqCreateNetworkIdentity()
+        {
+            // TransformComponent transformComponent = new TransformComponent();
+            // NetworkIdentityCreateReq req = new NetworkIdentityCreateReq();
+            // req.components.Add(new NetworkComponentPacket()
+            // {
+            //     idx = 0,
+            //     type =
+            // });
+            // client.Send(req);
         }
 
         [Button]
