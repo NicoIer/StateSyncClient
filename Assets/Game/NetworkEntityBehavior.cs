@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using Network;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -87,6 +88,22 @@ namespace Game
             NetworkMgr.Singleton.UpdateComponent(_entity, _transformCompIdx);
         }
 
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool Vector3Equal(Vector3 a, Vector3 b)
+        {
+            float epsilon = 0.01f;
+            return Mathf.Abs(a.x - b.x) < epsilon && Mathf.Abs(a.y - b.y) < epsilon && Mathf.Abs(a.z - b.z) < epsilon;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool QuaternionEqual(Quaternion a, Quaternion b)
+        {
+            float epsilon = 0.01f;
+            return Mathf.Abs(a.x - b.x) < epsilon && Mathf.Abs(a.y - b.y) < epsilon && Mathf.Abs(a.z - b.z) < epsilon &&
+                   Mathf.Abs(a.w - b.w) < epsilon;
+        }
+
         private void UploadTransform()
         {
             if (_entity == null || _localTransform == null) return;
@@ -96,20 +113,20 @@ namespace Game
 
             // 如果位置发生变化 才更新
             Assert.IsTrue(_localTransform.pos != null, "_transformComponent.pos != null");
-            if (_localTransform.pos.Value != transform.position)
+            if (!Vector3Equal(_localTransform.pos.Value, transform.position))
             {
                 _localTransform.pos = transform.position;
             }
 
             Assert.IsTrue(_localTransform.rotation != null,
                 "_transformComponent.rotation != null");
-            if (_localTransform.rotation.Value != transform.rotation)
+            if (!QuaternionEqual(_localTransform.rotation.Value, transform.rotation))
             {
                 _localTransform.rotation = transform.rotation;
             }
 
             Assert.IsTrue(_localTransform.scale != null, "_transformComponent.scale != null");
-            if (_localTransform.scale.Value != transform.localScale)
+            if (!Vector3Equal(_localTransform.scale.Value, transform.localScale))
             {
                 _localTransform.scale = transform.localScale;
             }
@@ -122,7 +139,7 @@ namespace Game
             if (_entity == null || _localTransform == null) return;
             // do some thing like dots system
             Assert.IsTrue(_localTransform.pos.HasValue);
-            if (transform.position != _localTransform.pos.Value)
+            if (!Vector3Equal(transform.position, _localTransform.pos.Value))
             {
                 // _posEma.Add(_localTransform.pos.Value);
                 // transform.position = _posEma.Value;
@@ -130,7 +147,7 @@ namespace Game
             }
 
             Assert.IsTrue(_localTransform.rotation.HasValue);
-            if (transform.rotation != _localTransform.rotation.Value)
+            if (!QuaternionEqual(transform.rotation, _localTransform.rotation.Value))
             {
                 // _rotEma.Add(_localTransform.rotation.Value);
                 // transform.rotation = _rotEma.Value;
@@ -138,14 +155,14 @@ namespace Game
             }
 
             Assert.IsTrue(_localTransform.scale.HasValue);
-            if (transform.localScale != _localTransform.scale.Value)
+            if (!Vector3Equal(transform.localScale, _localTransform.scale.Value))
             {
                 // _scaleEma.Add(_localTransform.scale.Value);
                 // transform.localScale = _scaleEma.Value;
                 transform.localScale = _localTransform.scale.Value;
             }
         }
-        
+
         private void Update()
         {
             UploadTransform();
