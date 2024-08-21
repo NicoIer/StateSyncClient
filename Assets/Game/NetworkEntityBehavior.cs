@@ -49,8 +49,8 @@ namespace Game
                 return;
             }
 
-            Debug.Assert(_localTransform != null, "_localTransform != null");
-            Debug.Assert(_localTransform == _entity.components[_transformCompIdx],
+            Assert.IsTrue(_localTransform != null, "_localTransform != null");
+            Assert.IsTrue(_localTransform == _entity.components[_transformCompIdx],
                 "_localTransform == _entity.components[_transformCompIdx]");
             if (_localTransform.pos.HasValue)
             {
@@ -95,20 +95,20 @@ namespace Game
             _currentSyncTime = 0;
 
             // 如果位置发生变化 才更新
-            System.Diagnostics.Debug.Assert(_localTransform.pos != null, "_transformComponent.pos != null");
+            Assert.IsTrue(_localTransform.pos != null, "_transformComponent.pos != null");
             if (_localTransform.pos.Value != transform.position)
             {
                 _localTransform.pos = transform.position;
             }
 
-            System.Diagnostics.Debug.Assert(_localTransform.rotation != null,
+            Assert.IsTrue(_localTransform.rotation != null,
                 "_transformComponent.rotation != null");
             if (_localTransform.rotation.Value != transform.rotation)
             {
                 _localTransform.rotation = transform.rotation;
             }
 
-            System.Diagnostics.Debug.Assert(_localTransform.scale != null, "_transformComponent.scale != null");
+            Assert.IsTrue(_localTransform.scale != null, "_transformComponent.scale != null");
             if (_localTransform.scale.Value != transform.localScale)
             {
                 _localTransform.scale = transform.localScale;
@@ -121,7 +121,7 @@ namespace Game
         {
             if (_entity == null || _localTransform == null) return;
             // do some thing like dots system
-            System.Diagnostics.Debug.Assert(_localTransform.pos != null, "_localTransform.pos != null");
+            Assert.IsTrue(_localTransform.pos.HasValue);
             if (transform.position != _localTransform.pos.Value)
             {
                 // _posEma.Add(_localTransform.pos.Value);
@@ -129,7 +129,7 @@ namespace Game
                 transform.position = _localTransform.pos.Value;
             }
 
-            System.Diagnostics.Debug.Assert(_localTransform.rotation != null, "_localTransform.rotation != null");
+            Assert.IsTrue(_localTransform.rotation.HasValue);
             if (transform.rotation != _localTransform.rotation.Value)
             {
                 // _rotEma.Add(_localTransform.rotation.Value);
@@ -137,7 +137,7 @@ namespace Game
                 transform.rotation = _localTransform.rotation.Value;
             }
 
-            System.Diagnostics.Debug.Assert(_localTransform.scale != null, "_localTransform.scale != null");
+            Assert.IsTrue(_localTransform.scale.HasValue);
             if (transform.localScale != _localTransform.scale.Value)
             {
                 // _scaleEma.Add(_localTransform.scale.Value);

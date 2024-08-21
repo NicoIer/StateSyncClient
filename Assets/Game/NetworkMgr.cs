@@ -111,7 +111,7 @@ namespace Game
             entities.Add(entity.id, entity);
             if (spawn.owner == connectionId)
             {
-                NetworkLogger.Info($"服务器为自己生成了一个实体:{entity}");
+                NetworkLogger.Info($"服务器为本地客户端生成了一个实体:{entity}");
                 selfEntityMgr.Add(entity);
             }
             else

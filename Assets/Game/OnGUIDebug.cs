@@ -26,7 +26,12 @@ namespace Game
             // 生成一个自己拥有的实体
             if (GUILayout.Button("Spawn"))
             {
-                TransformComponent transformComponent = new TransformComponent();
+                TransformComponent transformComponent = new TransformComponent()
+                {
+                    pos = Vector3.zero,
+                    rotation = Quaternion.identity,
+                    scale = Vector3.one
+                };
                 NetworkMgr.Singleton.SpawnEntity(transformComponent);
             }
             
