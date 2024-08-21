@@ -10,6 +10,26 @@ namespace Game
     [DisallowMultipleComponent]
     public class NetworkEntityBehavior : MonoBehaviour
     {
+        #region Static
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool Vector3Equal(Vector3 a, Vector3 b)
+        {
+            float epsilon = 0.001f;
+            return Mathf.Abs(a.x - b.x) < epsilon && Mathf.Abs(a.y - b.y) < epsilon && Mathf.Abs(a.z - b.z) < epsilon;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool QuaternionEqual(Quaternion a, Quaternion b)
+        {
+            float epsilon = 0.001f;
+            return Mathf.Abs(a.x - b.x) < epsilon && Mathf.Abs(a.y - b.y) < epsilon && Mathf.Abs(a.z - b.z) < epsilon &&
+                   Mathf.Abs(a.w - b.w) < epsilon;
+        }
+
+        #endregion
+        
+
         public NetworkAuthority authority = NetworkAuthority.ServerOnly;
         public bool self => _entity.owner == NetworkMgr.Singleton.connectionId;
         private NetworkEntity _entity;
@@ -89,21 +109,6 @@ namespace Game
         }
 
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool Vector3Equal(Vector3 a, Vector3 b)
-        {
-            float epsilon = 0.01f;
-            return Mathf.Abs(a.x - b.x) < epsilon && Mathf.Abs(a.y - b.y) < epsilon && Mathf.Abs(a.z - b.z) < epsilon;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool QuaternionEqual(Quaternion a, Quaternion b)
-        {
-            float epsilon = 0.01f;
-            return Mathf.Abs(a.x - b.x) < epsilon && Mathf.Abs(a.y - b.y) < epsilon && Mathf.Abs(a.z - b.z) < epsilon &&
-                   Mathf.Abs(a.w - b.w) < epsilon;
-        }
-
         private void UploadTransform()
         {
             if (_entity == null || _localTransform == null) return;
@@ -113,9 +118,11 @@ namespace Game
 
             // 如果位置发生变化 才更新
             Assert.IsTrue(_localTransform.pos != null, "_transformComponent.pos != null");
+            bool anyChange = false;
             if (!Vector3Equal(_localTransform.pos.Value, transform.position))
             {
                 _localTransform.pos = transform.position;
+                anyChange |= true;
             }
 
             Assert.IsTrue(_localTransform.rotation != null,
@@ -129,9 +136,13 @@ namespace Game
             if (!Vector3Equal(_localTransform.scale.Value, transform.localScale))
             {
                 _localTransform.scale = transform.localScale;
+                anyChange |= true;
             }
 
-            NetworkMgr.Singleton.UpdateComponent(_entity, _transformCompIdx);
+            if (anyChange)
+            {
+                NetworkMgr.Singleton.UpdateComponent(_entity, _transformCompIdx);
+            }
         }
 
         private void DownloadTransform()
