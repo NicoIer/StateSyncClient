@@ -1,3 +1,17 @@
 {
-  "name": "Game"
+    "name": "Game",
+    "rootNamespace": "",
+    "references": [
+        "UnityToolkit",
+        "GameCore"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }
