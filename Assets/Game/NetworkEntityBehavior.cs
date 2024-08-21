@@ -1,6 +1,7 @@
 using System;
 using Network;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace Game
 {
@@ -8,26 +9,19 @@ namespace Game
     [DisallowMultipleComponent]
     public class NetworkEntityBehavior : MonoBehaviour
     {
-        public bool ownerShip => _entity.owner == NetworkMgr.Singleton.connectionId;
+        public NetworkAuthority authority = NetworkAuthority.ServerOnly;
+        public bool self => _entity.owner == NetworkMgr.Singleton.connectionId;
         private NetworkEntity _entity;
         private int _transformCompIdx = -1;
-        private TransformComponent _transformComponent;
-        private ExponentialMovingAverageVector3 _posEma = new ExponentialMovingAverageVector3(10);
-        private ExponentialMovingAverageQuaternion _rotEma = new ExponentialMovingAverageQuaternion(10);
-        private ExponentialMovingAverageVector3 _scaleEma = new ExponentialMovingAverageVector3(10);
+
+        private TransformComponent _localTransform;
+        // private ExponentialMovingAverageVector3 _posEma = new ExponentialMovingAverageVector3(10);
+        // private ExponentialMovingAverageQuaternion _rotEma = new ExponentialMovingAverageQuaternion(10);
+        // private ExponentialMovingAverageVector3 _scaleEma = new ExponentialMovingAverageVector3(10);
 
         public float transformSyncInterval = 0.1f; // 每隔多久同步一次Transform
         private float _currentSyncTime = 0;
 
-        private void Awake()
-        {
-            _transformComponent = new TransformComponent
-            {
-                pos = transform.position,
-                rotation = transform.rotation,
-                scale = transform.localScale
-            };
-        }
 
         public void Bind(NetworkEntity entity)
         {
@@ -38,61 +32,124 @@ namespace Game
             }
 
             _entity = entity;
-            _transformCompIdx = -1;
             for (int i = 0; i < _entity.components.Count; i++)
             {
-                if (_entity.components[i] is TransformComponent)
+                if (_entity.components[i] is TransformComponent local)
                 {
+                    _localTransform = local;
                     _transformCompIdx = i;
                     break;
                 }
             }
 
+            NetworkLogger.Info($"{this} Bind {_entity}");
             if (_transformCompIdx == -1)
             {
                 Debug.LogError($"{_entity} doesn't have TransformComponent");
                 return;
             }
 
-            if (_transformComponent.pos.HasValue)
+            Debug.Assert(_localTransform != null, "_localTransform != null");
+            Debug.Assert(_localTransform == _entity.components[_transformCompIdx],
+                "_localTransform == _entity.components[_transformCompIdx]");
+            if (_localTransform.pos.HasValue)
             {
-                _posEma.Reset();
-                _posEma.Add(_transformComponent.pos.Value);
-                transform.position = _posEma.Value;
+                // _posEma.Reset();
+                // _posEma.Add(_localTransform.pos.Value);
+                transform.position = _localTransform.pos.Value;
             }
 
-            if (_transformComponent.rotation.HasValue)
+            if (_localTransform.rotation.HasValue)
             {
-                _rotEma.Reset();
-                _rotEma.Add(_transformComponent.rotation.Value);
-                transform.rotation = _rotEma.Value;
+                // _rotEma.Reset();
+                // _rotEma.Add(_localTransform.rotation.Value);
+                transform.rotation = _localTransform.rotation.Value;
             }
 
-            if (_transformComponent.scale.HasValue)
+            if (_localTransform.scale.HasValue)
             {
-                _scaleEma.Reset();
-                _scaleEma.Add(_transformComponent.scale.Value);
-                transform.localScale = _scaleEma.Value;
+                // _scaleEma.Reset();
+                // _scaleEma.Add(_localTransform.scale.Value);
+                transform.localScale = _localTransform.scale.Value;
             }
         }
 
         public void Unbind()
         {
             _entity = null;
-            _transformComponent = null;
+            _localTransform = null;
         }
 
+        [Sirenix.OdinInspector.Button]
+        private void TestPosSync(Vector3 pos)
+        {
+            _localTransform.pos = pos;
+            NetworkMgr.Singleton.UpdateComponent(_entity, _transformCompIdx);
+        }
+
+        private void UploadTransform()
+        {
+            if (_entity == null || _localTransform == null) return;
+            _currentSyncTime += Time.deltaTime;
+            if (!(_currentSyncTime >= transformSyncInterval)) return;
+            _currentSyncTime = 0;
+
+            // 如果位置发生变化 才更新
+            System.Diagnostics.Debug.Assert(_localTransform.pos != null, "_transformComponent.pos != null");
+            if (_localTransform.pos.Value != transform.position)
+            {
+                _localTransform.pos = transform.position;
+            }
+
+            System.Diagnostics.Debug.Assert(_localTransform.rotation != null,
+                "_transformComponent.rotation != null");
+            if (_localTransform.rotation.Value != transform.rotation)
+            {
+                _localTransform.rotation = transform.rotation;
+            }
+
+            System.Diagnostics.Debug.Assert(_localTransform.scale != null, "_transformComponent.scale != null");
+            if (_localTransform.scale.Value != transform.localScale)
+            {
+                _localTransform.scale = transform.localScale;
+            }
+
+            NetworkMgr.Singleton.UpdateComponent(_entity, _transformCompIdx);
+        }
+
+        private void DownloadTransform()
+        {
+            if (_entity == null || _localTransform == null) return;
+            // do some thing like dots system
+            System.Diagnostics.Debug.Assert(_localTransform.pos != null, "_localTransform.pos != null");
+            if (transform.position != _localTransform.pos.Value)
+            {
+                // _posEma.Add(_localTransform.pos.Value);
+                // transform.position = _posEma.Value;
+                transform.position = _localTransform.pos.Value;
+            }
+
+            System.Diagnostics.Debug.Assert(_localTransform.rotation != null, "_localTransform.rotation != null");
+            if (transform.rotation != _localTransform.rotation.Value)
+            {
+                // _rotEma.Add(_localTransform.rotation.Value);
+                // transform.rotation = _rotEma.Value;
+                transform.rotation = _localTransform.rotation.Value;
+            }
+
+            System.Diagnostics.Debug.Assert(_localTransform.scale != null, "_localTransform.scale != null");
+            if (transform.localScale != _localTransform.scale.Value)
+            {
+                // _scaleEma.Add(_localTransform.scale.Value);
+                // transform.localScale = _scaleEma.Value;
+                transform.localScale = _localTransform.scale.Value;
+            }
+        }
+        
         private void Update()
         {
-            if (_entity != null && _transformComponent != null)
-            {
-                _currentSyncTime += Time.deltaTime;
-                if (_currentSyncTime >= transformSyncInterval)
-                {
-                    _currentSyncTime = 0;
-                    NetworkMgr.Singleton.UpdateComponent(_entity, _transformCompIdx);
-                }
-            }
+            UploadTransform();
+            DownloadTransform();
         }
     }
 }

@@ -55,12 +55,16 @@ namespace Game
 
             client.AddSystem<NetworkClientTime>();
             client.AddMsgHandler<NetworkEntitySpawn>(OnEntitySpawn);
+            client.AddMsgHandler<NetworkEntityUpdate>(OnEntityUpdate);
+            client.AddMsgHandler<NetworkComponentUpdate>(OnComponentUpdate);
+            client.AddMsgHandler<NetworkEntityDestroy>(OnEntityDestroy);
+            
             componentSerializer.Register<TransformComponent>();
 
             NetworkLoop.OnEarlyUpdate += OnNetworkEarlyUpdate;
             NetworkLoop.OnLateUpdate += OnNetworkLateUpdate;
         }
-
+        
         protected override void OnDispose()
         {
             NetworkLoop.OnEarlyUpdate -= OnNetworkEarlyUpdate;
@@ -121,10 +125,38 @@ namespace Game
                 otherEntityMgrs[spawn.owner.Value].Add(entity);
             }
 
-            var entityObject = new GameObject($"Entity:{entity.id}");
+            var entityObject = new GameObject($"[E{entity.id}]-[O{entity.owner}]");
             var entityBehavior = entityObject.AddComponent<NetworkEntityBehavior>();
             entityBehavior.Bind(entity);
             entityBehaviors.Add(entity.id, entityBehavior);
+        }
+
+        private void OnEntityDestroy(NetworkEntityDestroy obj)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void OnComponentUpdate(NetworkComponentUpdate obj)
+        {
+            if (!obj.component.entityId.HasValue)
+            {
+                NetworkLogger.Warning("NetworkComponentUpdate.entityId is null");
+                return;
+            }
+            if (!obj.component.idx.HasValue)
+            {
+                NetworkLogger.Warning("NetworkComponentUpdate.idx is null");
+                return;
+            }
+            if(entities.ContainsKey(obj.component.entityId.Value))
+            {
+                entities[obj.component.entityId.Value].components[obj.component.idx.Value].UpdateFromPacket(obj.component);
+            }
+        }
+
+        private void OnEntityUpdate(NetworkEntityUpdate obj)
+        {
+            throw new NotImplementedException();
         }
 
 
