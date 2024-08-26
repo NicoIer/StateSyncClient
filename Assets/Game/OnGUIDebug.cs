@@ -7,22 +7,23 @@ namespace Game
     {
         private void OnGUI()
         {
-            GUILayout.BeginVertical();
-            GUILayout.Label($"Network {NetworkMgr.Singleton.connectionId}");
-            if (NetworkMgr.Singleton.client is { Cts: { IsCancellationRequested: false } })
+            GUILayout.BeginVertical("window");
+            GUILayout.Label($"Network {NetworkClientMgr.Singleton.connectionId}");
+            if (NetworkClientMgr.Singleton.client is { Cts: { IsCancellationRequested: false } })
             {
-                if (GUILayout.Button("Stop"))
+                if (GUILayout.Button("Disconnect"))
                 {
-                    NetworkMgr.Singleton.client.Stop();
+                    NetworkClientMgr.Singleton.client.Stop();
                 }
             }
             else
             {
-                if (GUILayout.Button("Run"))
+                if (GUILayout.Button("Connect"))
                 {
-                    NetworkMgr.Singleton.Run("localhost", 8080);
+                    NetworkClientMgr.Singleton.Connect("localhost", 8080);
                 }
             }
+
             // 生成一个自己拥有的实体
             if (GUILayout.Button("Spawn"))
             {
@@ -32,9 +33,9 @@ namespace Game
                     rotation = Quaternion.identity,
                     scale = Vector3.one
                 };
-                NetworkMgr.Singleton.SpawnEntity(transformComponent);
+                NetworkClientMgr.Singleton.SpawnEntity(transformComponent);
             }
-            
+
 
             GUILayout.EndVertical();
         }

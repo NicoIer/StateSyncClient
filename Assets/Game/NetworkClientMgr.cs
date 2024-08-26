@@ -11,7 +11,7 @@ using UnityToolkit;
 
 namespace Game
 {
-    public class NetworkMgr : MonoSingleton<NetworkMgr>
+    public class NetworkClientMgr : MonoSingleton<NetworkClientMgr>
     {
         public IClientSocket socket;
         public NetworkClient client;
@@ -58,13 +58,13 @@ namespace Game
             client.AddMsgHandler<NetworkEntityUpdate>(OnEntityUpdate);
             client.AddMsgHandler<NetworkComponentUpdate>(OnComponentUpdate);
             client.AddMsgHandler<NetworkEntityDestroy>(OnEntityDestroy);
-            
+
             componentSerializer.Register<TransformComponent>();
 
             NetworkLoop.OnEarlyUpdate += OnNetworkEarlyUpdate;
             NetworkLoop.OnLateUpdate += OnNetworkLateUpdate;
         }
-        
+
         protected override void OnDispose()
         {
             NetworkLoop.OnEarlyUpdate -= OnNetworkEarlyUpdate;
@@ -108,6 +108,8 @@ namespace Game
             Debug.Assert(spawn.id != null, "spawn.id != null");
             Debug.Assert(spawn.owner != null, "spawn.owner != null");
             NetworkEntity entity = NetworkEntity.From(spawn.id.Value, spawn.owner.Value, spawn, componentSerializer);
+            Debug.Assert(entity != null, "entity != null");
+            Debug.Assert(!entities.ContainsKey(entity.id), "!entities.ContainsKey(entity.id)");
             entities.Add(entity.id, entity);
             if (spawn.owner == connectionId)
             {
@@ -143,14 +145,17 @@ namespace Game
                 NetworkLogger.Warning("NetworkComponentUpdate.entityId is null");
                 return;
             }
+
             if (!obj.component.idx.HasValue)
             {
                 NetworkLogger.Warning("NetworkComponentUpdate.idx is null");
                 return;
             }
-            if(entities.ContainsKey(obj.component.entityId.Value))
+
+            if (entities.ContainsKey(obj.component.entityId.Value))
             {
-                entities[obj.component.entityId.Value].components[obj.component.idx.Value].UpdateFromPacket(obj.component);
+                entities[obj.component.entityId.Value].components[obj.component.idx.Value]
+                    .UpdateFromPacket(obj.component);
             }
         }
 
@@ -160,7 +165,7 @@ namespace Game
         }
 
 
-        public void Run(string host, int port)
+        public void Connect(string host, int port)
         {
             if (client is { Cts: { IsCancellationRequested: false } })
             {
@@ -196,9 +201,8 @@ namespace Game
         {
             NetworkBuffer<NetworkComponentPacket> componentBuffer = componentBufferPool.Get();
             var list = ListPool<NetworkBuffer>.Get();
-            for (int i = 0; i < components.Length; i++)
+            foreach (var component in components)
             {
-                var component = components[i];
                 NetworkBuffer buffer = bufferPool.Get();
                 list.Add(buffer);
                 NetworkComponentPacket packet = component.ToDummyPacket(buffer);
@@ -214,6 +218,35 @@ namespace Game
             }
 
             ListPool<NetworkBuffer>.Release(list);
+        }
+
+        public void SpawnEntity(IEnumerable<NetworkComponent> components)
+        {
+            NetworkBuffer<NetworkComponentPacket> componentBuffer = componentBufferPool.Get();
+            var list = ListPool<NetworkBuffer>.Get();
+            foreach (var component in components)
+            {
+                NetworkBuffer buffer = bufferPool.Get();
+                list.Add(buffer);
+                NetworkComponentPacket packet = component.ToDummyPacket(buffer);
+                componentBuffer.Write(packet);
+            }
+
+            NetworkEntitySpawn spawn = new NetworkEntitySpawn(null, client.connectionId, componentBuffer);
+            client.Send(spawn);
+            componentBufferPool.Return(componentBuffer);
+            foreach (var buffer in list)
+            {
+                bufferPool.Return(buffer);
+            }
+
+            ListPool<NetworkBuffer>.Release(list);
+        }
+
+
+        public bool ContainsEntity(uint entityID)
+        {
+            return entities.ContainsKey(entityID);
         }
     }
 }
