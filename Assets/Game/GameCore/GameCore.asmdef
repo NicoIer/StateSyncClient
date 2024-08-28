@@ -2,7 +2,14 @@
     "name": "GameCore",
     "rootNamespace": "",
     "references": [
-        "UnityToolkit"
+        "UnityToolkit",
+        "MessagePack",
+        "MessagePack.Annotations",
+        "MagicOnion.Abstractions",
+        "MagicOnion.Client",
+        "MagicOnion.Serialization.MemoryPack",
+        "MagicOnion.Serialization.MessagePack",
+        "MagicOnion.Unity"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

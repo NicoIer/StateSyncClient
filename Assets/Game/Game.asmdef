@@ -3,7 +3,12 @@
     "rootNamespace": "",
     "references": [
         "UnityToolkit",
-        "GameCore"
+        "GameCore",
+        "Cysharp.Net.Http.YetAnotherHttpHandler",
+        "MagicOnion.Client",
+        "MagicOnion.Unity",
+        "MagicOnion.Shared",
+        "MagicOnion.Abstractions"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
