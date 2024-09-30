@@ -1,0 +1,11 @@
+{
+  "name": "GameLogic",
+  "references": [
+    "Game",
+    "GameCore",
+    "UnityToolkit",
+    "DebugUI",
+    "MagicOnion.Abstractions",
+    "IngameDebugConsole.Runtime"
+  ]
+}

@@ -11,7 +11,11 @@ git submodule update --init --recursive
 - [x] 动态增删改网络实体
 - [x] 动态增删改网络组件
 - [x] Transform 同步
+- [x] rpc支持
 - [ ] 动画同步
-- [ ] http支持
-- [ ] rpc支持
 - [ ] 物理同步
+
+# 场景管理
+
+Entry(热更初始化) --> GameEntry(游戏初始化) --> 逻辑游戏场景
+
