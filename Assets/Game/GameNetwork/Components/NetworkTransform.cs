@@ -17,6 +17,8 @@ namespace Game
         [SerializeField] private TransformComponent _remoteTransform; // 远程的
         [SerializeField] private TransformComponent _localTransform; // 本地的
 
+        public static long serverTimeTicks => NetworkClientMgr.Singleton.time.ServerTimeTicks;
+        public static long rttTicks => NetworkClientMgr.Singleton.time.RttTicks;
         public bool syncPosition => _remoteTransform.mask.HasFlag(TransformComponent.Mask.Pos);
         public bool syncRotation => _remoteTransform.mask.HasFlag(TransformComponent.Mask.Rotation);
         public bool syncScale => _remoteTransform.mask.HasFlag(TransformComponent.Mask.Scale);
@@ -34,6 +36,9 @@ namespace Game
 
         private bool _remoteUpdated = false;
 
+        /// <summary>
+        /// 作为非权威客户端时 本地相对于远程的时间戳
+        /// </summary>
         private double _localTimeline;
 
         protected override void OnNetworkSpawn(INetworkComponent component)
@@ -47,9 +52,8 @@ namespace Game
             transform.position = _remoteTransform.pos;
             transform.rotation = _remoteTransform.rotation;
             transform.localScale = _remoteTransform.scale;
-            // 记录这次完全跟的时间戳
-            _localTimeline = _remoteTransform.timestamp;
-            // Debug.Log($"OnNetworkSpawn {this} {_remoteTransform.GetHashCode()}");
+            // 完全跟上了服务器的位置
+            _localTimeline = serverTimeTicks;
             _networkInitialized = true;
         }
 
@@ -58,7 +62,7 @@ namespace Game
         {
             if (componentIdx == -1) return; // 未初始化
             UploadTransform(); // 只有权威客户端才可以上传
-            SyncFromRemote(); // 所有客户端都需要同步
+            SyncFromRemote(); // 权威客户端不需要同步
         }
 
 
@@ -67,6 +71,7 @@ namespace Game
         /// </summary>
         private void SyncFromRemote()
         {
+            if (entityBehavior.Ownership) return; // 有权限的客户端不需要同步 以自己本地为准
             if (!_remoteUpdated) return; // 远程数据未更新 不需要同步
             // 不需要插值捏
             if (!_remoteTransform.interpolation)
@@ -87,9 +92,10 @@ namespace Game
                 return;
             }
 
+            // 每帧都会更新本地时间线 去追赶远程时间线
             SnapshotInterpolation.Step(
                 _snapshots,
-                Time.deltaTime,
+                Time.deltaTime * TimeSpan.TicksPerSecond,
                 ref _localTimeline,
                 1,
                 out var from,
@@ -134,7 +140,7 @@ namespace Game
                 changed |= true;
             }
 
-            _localTransform.timestamp = Time.unscaledTimeAsDouble;
+            _localTransform.timestamp = serverTimeTicks;
 
             if (changed)
             {
@@ -148,17 +154,23 @@ namespace Game
         /// </summary>
         private void OnRemoteTransformUpdated()
         {
+            if (entityBehavior.Ownership) return; // 有权限的客户端不需要同步 以自己本地为准
             _remoteUpdated = true;
             if (_remoteTransform.interpolation)
             {
-                _snapshots.Add(_remoteTransform.timestamp, new TransformSnapshot
-                {
-                    localTime = _localTimeline,
-                    remoteTime = _remoteTransform.timestamp,
-                    position = _remoteTransform.pos,
-                    rotation = _remoteTransform.rotation,
-                    scale = _remoteTransform.scale
-                });
+                // 当收到新的远程数据时 将其加入到快照中
+                SnapshotInterpolation.InsertIfNotExists(
+                    _snapshots,
+                    SnapshotInterpolation.snapshotSettings.bufferLimit,
+                    new TransformSnapshot
+                    {
+                        localTime = _localTimeline,
+                        remoteTime = serverTimeTicks - (long)(rttTicks / 2), //我收到的时间已经落后了服务器rttTicks / 2
+                        position = _remoteTransform.pos,
+                        rotation = _remoteTransform.rotation,
+                        scale = _remoteTransform.scale
+                    }
+                );
             }
         }
 
