@@ -23,15 +23,15 @@ namespace Game
             {
                 uiBuilder.AddButton("Disconnect", () =>
                 {
-                    if (NetworkClientMgr.Singleton.client is { Cts: { IsCancellationRequested: false } })
+                    if (EntityNetworkMgr.Singleton.client is { Cts: { IsCancellationRequested: false } })
                     {
-                        NetworkClientMgr.Singleton.client.Stop();
+                        EntityNetworkMgr.Singleton.client.Stop();
                     }
                 });
                 uiBuilder.AddButton("Connect", () =>
                 {
-                    if (NetworkClientMgr.Singleton.client is { Cts: { IsCancellationRequested: false } }) return;
-                    NetworkClientMgr.Singleton.Connect("localhost", 8080);
+                    if (EntityNetworkMgr.Singleton.client is { Cts: { IsCancellationRequested: false } }) return;
+                    EntityNetworkMgr.Singleton.Connect("localhost", 8080);
                 });
                 uiBuilder.AddButton("Spawn", () =>
                 {
@@ -42,7 +42,7 @@ namespace Game
                         scale = UnityToolkit.MathTypes.Vector3.one
                     };
                     transformComponent.mask = TransformComponent.Mask.All;
-                    NetworkClientMgr.Singleton.SpawnEntity(transformComponent);
+                    EntityNetworkMgr.Singleton.SpawnEntity(transformComponent);
                 });
             });
             // Game RPC Debug

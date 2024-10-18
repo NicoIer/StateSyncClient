@@ -17,8 +17,8 @@ namespace Game
         [SerializeField] private TransformComponent _remoteTransform; // 远程的
         [SerializeField] private TransformComponent _localTransform; // 本地的
 
-        public static long serverTimeTicks => NetworkClientMgr.Singleton.time.ServerTimeTicks;
-        public static long rttTicks => NetworkClientMgr.Singleton.time.RttTicks;
+        public static long serverTimeTicks => EntityNetworkMgr.Singleton.time.ServerTimeTicks;
+        public static long rttTicks => EntityNetworkMgr.Singleton.time.RttTicks;
         public bool syncPosition => _remoteTransform.mask.HasFlag(TransformComponent.Mask.Pos);
         public bool syncRotation => _remoteTransform.mask.HasFlag(TransformComponent.Mask.Rotation);
         public bool syncScale => _remoteTransform.mask.HasFlag(TransformComponent.Mask.Scale);

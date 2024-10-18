@@ -988,7 +988,7 @@ PrefabInstance:
     - target: {fileID: 6574329620947789992, guid: 7c7675d0439254f7e94f56c66f96a56c,
         type: 3}
       propertyPath: m_Name
-      value: LogicNetwork
+      value: EntityNetwork
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

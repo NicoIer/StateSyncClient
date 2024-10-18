@@ -11,7 +11,7 @@ namespace Game
     public class NetworkEntityBehavior : MonoBehaviour
     {
         // public NetworkAuthority authority = NetworkAuthority.ServerOnly;
-        public bool Ownership => entity.owner == NetworkClientMgr.Singleton.connectionId;
+        public bool Ownership => entity.owner == EntityNetworkMgr.Singleton.connectionId;
         public NetworkEntity entity { get; private set; }
         private readonly List<NetworkComponentBehavior> _componentBehaviors = new List<NetworkComponentBehavior>();
 
@@ -19,7 +19,7 @@ namespace Game
         {
             get
             {
-                if (entity != null && NetworkClientMgr.Singleton.ContainsEntity(entity.id))
+                if (entity != null && EntityNetworkMgr.Singleton.ContainsEntity(entity.id))
                 {
                     return true;
                 }
@@ -69,12 +69,12 @@ namespace Game
 
         public void SendComponentUpdate(int componentIdx)
         {
-            NetworkClientMgr.Singleton.UpdateComponent(entity, componentIdx);
+            EntityNetworkMgr.Singleton.UpdateComponent(entity, componentIdx);
         }
 
         public void SendComponentUpdate(int componentIdx, INetworkComponent local)
         {
-            NetworkClientMgr.Singleton.UpdateComponent(entity, componentIdx, local);
+            EntityNetworkMgr.Singleton.UpdateComponent(entity, componentIdx, local);
         }
 
         // private void OnValidate()

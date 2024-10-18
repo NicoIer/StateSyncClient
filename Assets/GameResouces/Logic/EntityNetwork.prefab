@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3892803972370669509}
   - component: {fileID: 4598035589554671864}
   m_Layer: 0
-  m_Name: LogicNetwork
+  m_Name: EntityNetwork
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

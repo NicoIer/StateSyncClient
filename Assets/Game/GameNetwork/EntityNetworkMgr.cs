@@ -7,9 +7,9 @@ using UnityToolkit;
 
 namespace Game
 {
-    public class NetworkClientMgr : MonoSingleton<NetworkClientMgr>
+    public class EntityNetworkMgr : MonoSingleton<EntityNetworkMgr>
     {
-        private class MyNetworkMgr : NetworkMgr
+        private class MyEntityNetwork : EntityNetworkClient
         {
             public override void OnInit()
             {
@@ -20,7 +20,7 @@ namespace Game
 
         public SnapshotInterpolationSettings interpolationSettings = new SnapshotInterpolationSettings();
         public Dictionary<uint, NetworkEntityBehavior> entityBehaviors { get; private set; }
-        private MyNetworkMgr _mgr;
+        private MyEntityNetwork _mgr;
         public int connectionId => _mgr.connectionId;
 
         public NetworkClient client => _mgr.client;
@@ -28,7 +28,7 @@ namespace Game
 
         protected override void OnInit()
         {
-            _mgr = new MyNetworkMgr();
+            _mgr = new MyEntityNetwork();
             _mgr.OnInit();
             _mgr.OnEntitySpawned += OnEntitySpawned;
             _mgr.client.socket.OnDisconnected += OnDisconnected;
